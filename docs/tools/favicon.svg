@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00f0ff"/>
+      <stop offset="100%" stop-color="#ff00e6"/>
+    </linearGradient>
+    <radialGradient id="bg" cx="50%" cy="45%" r="70%">
+      <stop offset="0%" stop-color="#101426"/>
+      <stop offset="100%" stop-color="#070a14"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background with subtle rounded square -->
+  <rect x="32" y="32" width="448" height="448" rx="72" ry="72" fill="url(#bg)"/>
+  <rect x="32" y="32" width="448" height="448" rx="72" ry="72" fill="none" stroke="url(#g1)" stroke-width="6" opacity="0.35"/>
+
+  <!-- Neon circuit accents -->
+  <g stroke="url(#g1)" stroke-width="6" opacity="0.4">
+    <path d="M84 148h80m16 0h28"/>
+    <path d="M84 364h120m16 0h24"/>
+    <path d="M380 148h48m-48 216h48"/>
+  </g>
+
+  <!-- CB monogram -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+    <!-- C -->
+    <path d="M210 180c-42 0-76 34-76 76s34 76 76 76c20 0 38-7 51-20" stroke="url(#g1)" stroke-width="28"/>
+    <!-- B -->
+    <path d="M290 180v152m0-152h60c30 0 54 20 54 44s-24 44-54 44h-60m60 0c30 0 54 20 54 44s-24 44-54 44h-60" stroke="url(#g1)" stroke-width="28"/>
+  </g>
+
+  <!-- Text label for accessibility (not rendered) -->
+  <title>Cyberpunk Brewery</title>
+</svg>
+
