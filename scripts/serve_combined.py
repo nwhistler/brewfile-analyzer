@@ -4,7 +4,6 @@ Combined Static + API Server for Brewfile Analyzer
 Serves both static files and API endpoints in a single server
 Handles editing functionality with proper data persistence
 """
-import csv
 import json
 import posixpath
 import sys
@@ -22,7 +21,7 @@ script_dir = Path(__file__).parent
 project_root = script_dir.parent
 sys.path.insert(0, str(project_root))
 
-from config import get_config
+from config import get_config  # noqa: E402
 
 # Optional DuckDB backend
 try:

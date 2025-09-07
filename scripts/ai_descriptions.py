@@ -68,7 +68,7 @@ class AIDescriptionGenerator:
             with urllib.request.urlopen(req, timeout=5) as response:
                 if response.status == 200:
                     return True
-        except:
+        except Exception:
             pass
 
         # Also check for ollama command
@@ -76,7 +76,7 @@ class AIDescriptionGenerator:
             result = subprocess.run(["ollama", "list"],
                                   capture_output=True, timeout=5)
             return result.returncode == 0
-        except:
+        except Exception:
             return False
 
     def _check_claude_cli(self) -> bool:
@@ -86,7 +86,7 @@ class AIDescriptionGenerator:
             result = subprocess.run(["claude", "--version"],
                                   capture_output=True, timeout=5)
             return result.returncode == 0
-        except:
+        except Exception:
             # Check for environment variables
             return bool(os.getenv("CLAUDE_API_KEY") or os.getenv("ANTHROPIC_API_KEY"))
 
@@ -97,7 +97,7 @@ class AIDescriptionGenerator:
             result = subprocess.run(["gemini", "--version"],
                                   capture_output=True, timeout=5)
             return result.returncode == 0
-        except:
+        except Exception:
             # Check for environment variables
             return bool(os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
 
@@ -237,7 +237,7 @@ Only respond with valid JSON, no additional text."""
                     ai_response = result.stdout.strip()
                 else:
                     raise Exception("Claude CLI failed")
-            except:
+            except Exception:
                 # Fallback to direct API call if available
                 api_key = os.getenv("CLAUDE_API_KEY") or os.getenv("ANTHROPIC_API_KEY")
                 if not api_key:
@@ -271,7 +271,7 @@ Only respond with valid JSON, no additional text."""
                     ai_response = result.stdout.strip()
                 else:
                     raise Exception("Gemini CLI failed")
-            except:
+            except Exception:
                 # Fallback to direct API call if available
                 api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
                 if not api_key:

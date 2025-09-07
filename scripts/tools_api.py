@@ -9,7 +9,6 @@ import sys
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 
-import sys
 from pathlib import Path
 
 # Dynamically detect the project root (parent of scripts directory)
