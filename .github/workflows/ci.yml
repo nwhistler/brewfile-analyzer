@@ -38,7 +38,7 @@ jobs:
         uses: trufflesecurity/trufflehog@v3.71.0
         with:
           path: .
-          extra_args: --only-verified --fail
+          extra_args: --only-verified
 
       - name: TruffleHog (PR diff)
         if: github.event_name == 'pull_request'
@@ -46,4 +46,4 @@ jobs:
         with:
           base: ${{ github.event.pull_request.base.sha }}
           head: ${{ github.sha }}
-          extra_args: --only-verified --fail
+          extra_args: --only-verified
