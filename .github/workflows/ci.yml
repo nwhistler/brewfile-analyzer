@@ -34,8 +34,16 @@ jobs:
           ruff version
           ruff check .
 
-      - name: TruffleHog (git history)
-        run: trufflehog git file://"$GITHUB_WORKSPACE" --fail --only-verified
-
       - name: TruffleHog (filesystem)
-        run: trufflehog filesystem . --fail --only-verified
+        uses: trufflesecurity/trufflehog@v3
+        with:
+          path: .
+          extra_args: --only-verified --fail
+
+      - name: TruffleHog (PR diff)
+        if: github.event_name == 'pull_request'
+        uses: trufflesecurity/trufflehog@v3
+        with:
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.sha }}
+          extra_args: --only-verified --fail
