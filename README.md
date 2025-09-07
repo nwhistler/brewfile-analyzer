@@ -2,6 +2,8 @@
 
 Beautiful, editable documentation for your Homebrew setup — powered by a fast DuckDB backend and a simple local web UI.
 
+[Download latest (.zip)](https://github.com/nwhistler/brewfile-analyzer/archive/refs/heads/main.zip) • [Raw installer script](https://raw.githubusercontent.com/nwhistler/brewfile-analyzer/main/install.sh)
+
 ## ✨ Features
 - 🔍 Smart parsing of Brewfile (single or split) with optional brew info enrichment
 - ✏️ Live editing in the browser (description + example)
@@ -11,6 +13,13 @@ Beautiful, editable documentation for your Homebrew setup — powered by a fast 
 - 🧱 Zero external services required; optional AI providers supported
 
 ## 🚀 Quick Start (2 minutes)
+
+One-liner (no clone needed):
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/nwhistler/brewfile-analyzer/main/install.sh)"
+```
+
+Or run the installer from a local clone:
 ```bash
 # 1) Run the one-command installer
 ./install.sh
