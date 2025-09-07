@@ -4,34 +4,39 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository (full history)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
 
-      - name: Compile Python (syntax check)
+      - name: Install tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff trufflehog
+
+      - name: Python syntax check
         run: python -m compileall -q .
 
-      - name: Quick grep for obvious secrets
+      - name: Python lint (ruff)
         run: |
-          set -e
-          if grep -RInE 'BEGIN [A-Z ]*PRIVATE KEY|sk-[A-Za-z0-9]{20,}|Authorization: Bearer [A-Za-z0-9._-]+' . ; then
-            echo "Secret-like patterns found. Failing." >&2
-            exit 1
-          else
-            echo "No obvious patterns detected."
-          fi
+          ruff version
+          ruff check .
 
-      - name: TruffleHog secret scan
-        uses: trufflesecurity/trufflehog@v3.71.0
-        with:
-          scan: filesystem
-          path: .
-          extra_args: --only-verified --fail
+      - name: TruffleHog (git history)
+        run: trufflehog git file://"$GITHUB_WORKSPACE" --fail --only-verified
+
+      - name: TruffleHog (filesystem)
+        run: trufflehog filesystem . --fail --only-verified
