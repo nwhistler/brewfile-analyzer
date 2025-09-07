@@ -9,9 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-import csv
 import json
-import time
 
 try:
     import duckdb  # type: ignore
@@ -76,7 +74,6 @@ def upsert_tool_merged(con, new_tool: Dict[str, Any]) -> None:
         # Preserve user edits
         description = existing.get("description") or new_tool.get("description", "")
         example = existing.get("example") or new_tool.get("example", "")
-        user_edited = True
         # Keep last_edited as-is for preserved values
         con.execute(
             """

@@ -35,7 +35,7 @@ script_dir = Path(__file__).parent
 project_root = script_dir.parent
 sys.path.insert(0, str(project_root))
 
-from config import get_config
+from config import get_config  # noqa: E402
 
 # Constants
 UPDATE_STATE_FILE = ".brewfile_update_state.json"

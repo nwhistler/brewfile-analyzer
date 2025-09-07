@@ -3,7 +3,6 @@
 Brewfile data generator with portable configuration
 Supports both single Brewfiles and split Brewfiles
 """
-import csv
 import json
 import os
 import re
@@ -16,7 +15,7 @@ script_dir = os.path.dirname(__file__)
 project_root = os.path.abspath(os.path.join(script_dir, '..'))
 sys.path.insert(0, project_root)
 
-from config import get_config
+from config import get_config  # noqa: E402
 
 # Optional DuckDB backend
 try:
