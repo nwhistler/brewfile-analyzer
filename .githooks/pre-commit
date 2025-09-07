@@ -1,0 +1,30 @@
+#!/bin/sh
+# Pre-commit: simple secret scans and optional trufflehog
+set -e
+
+# Only run on non-merge commits
+if git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
+  exit 0
+fi
+
+printf "[pre-commit] Running secret checks...\n"
+
+# Simple regex-based scan on staged changes
+PATTERN='(BEGIN [A-Z ]*PRIVATE KEY|sk-[A-Za-z0-9]{20,}|Authorization: Bearer [A-Za-z0-9._-]+)'
+if git --no-pager grep -nE "$PATTERN" --cached -- . ':!docs/tools/index.html' ; then
+  echo "[pre-commit] Potential secret-like patterns found. Aborting commit." 1>&2
+  exit 1
+fi
+
+# Run trufflehog if available
+if command -v trufflehog >/dev/null 2>&1; then
+  if ! trufflehog filesystem --no-update --only-verified --fail .; then
+    echo "[pre-commit] trufflehog found potential secrets. Aborting commit." 1>&2
+    exit 1
+  fi
+else
+  echo "[pre-commit] trufflehog not installed, skipping deep secret scan."
+fi
+
+printf "[pre-commit] OK\n"
+exit 0

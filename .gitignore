@@ -187,6 +187,10 @@ logs/
 config.local.py
 secrets.json
 .secrets
+ai_config.json
+
+# Local data directories (if created during dev)
+data/
 
 # Node modules (if you add any JS tooling)
 node_modules/
