@@ -1,0 +1,76 @@
+# Sample Brewfile.Mas - Mac App Store Applications
+# Applications available through the Mac App Store
+
+# Apple Development Tools
+mas "Xcode", id: 497799835
+mas "Transporter", id: 1450874784
+
+# Productivity and Office
+mas "Keynote", id: 409183694
+mas "Numbers", id: 409203825
+mas "Pages", id: 409201541
+mas "Microsoft Excel", id: 462058435
+mas "Microsoft Word", id: 462054704
+mas "Microsoft PowerPoint", id: 462062816
+
+# Calendar and Task Management
+mas "Fantastical - Calendar & Tasks", id: 975937182
+mas "Things 3", id: 904280696
+mas "OmniFocus 3", id: 1346203938
+mas "Calendar", id: 1147396723
+
+# Note-taking and Writing
+mas "Bear", id: 1091189122
+mas "GoodNotes 5", id: 1444383602
+mas "Notability", id: 360593530
+mas "Ulysses", id: 1225570693
+
+# Security and Privacy
+mas "1Password 7 - Password Manager", id: 1333542190
+mas "Encrypto", id: 935235287
+
+# Developer Tools
+mas "Xcode", id: 497799835
+mas "SF Symbols", id: 1479756402
+mas "Core Data Lab", id: 1460684638
+mas "Paw", id: 584653203
+
+# Design and Graphics
+mas "Pixelmator Pro", id: 1289583905
+mas "Affinity Designer", id: 824171161
+mas "Affinity Photo", id: 824183456
+mas "Sketch", id: 402476602
+
+# System Utilities
+mas "The Unarchiver", id: 425424353
+mas "CleanMyMac X", id: 1339170533
+mas "DiskSight", id: 1502909055
+mas "Menu Weather Pro", id: 1447027613
+
+# Media and Entertainment
+mas "Logic Pro", id: 634148309
+mas "GarageBand", id: 682658836
+mas "Final Cut Pro", id: 424389933
+mas "Compressor", id: 424390742
+
+# Social and Communication
+mas "Twitter", id: 1482454543
+mas "Telegram", id: 747648890
+mas "WhatsApp Desktop", id: 1147396723
+
+# Reference and Education
+mas "Dash", id: 458034879
+mas "Patterns", id: 429449079
+mas "MindNode – Mind Map & Outline", id: 1289197285
+
+# Finance
+mas "MoneyMoney", id: 872698314
+mas "Budget Seer - Financial Vision", id: 1495826650
+
+# Health and Fitness
+mas "StepsApp", id: 1037595083
+mas "Waterminder", id: 1415257369
+
+# Travel
+mas "Maps", id: 1147396723
+mas "Tripit", id: 1475283341

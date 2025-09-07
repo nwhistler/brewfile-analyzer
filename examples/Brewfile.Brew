@@ -1,0 +1,69 @@
+# Sample Brewfile.Brew - Command-line tools
+# Core development and system administration tools
+
+# Version control and development
+brew "git"
+brew "gh"
+brew "git-lfs"
+
+# Programming languages and runtimes
+brew "node"
+brew "python@3.11"
+brew "go"
+brew "rust"
+brew "ruby"
+
+# Text processing and search
+brew "jq"
+brew "yq"
+brew "ripgrep"
+brew "fd"
+brew "bat"
+brew "eza"
+brew "tree"
+
+# Network and web tools
+brew "curl"
+brew "wget"
+brew "httpie"
+brew "nmap"
+
+# System monitoring and management
+brew "htop"
+brew "btop"
+brew "dust"
+brew "bandwhich"
+
+# Terminal and shell enhancements
+brew "tmux"
+brew "zsh"
+brew "starship"
+brew "fzf"
+brew "zoxide"
+
+# Editors and IDEs
+brew "neovim"
+brew "vim"
+brew "micro"
+
+# Container and cloud tools
+brew "docker"
+brew "docker-compose"
+brew "kubectl"
+brew "helm"
+brew "terraform"
+brew "awscli"
+brew "gcloud"
+
+# Database tools
+brew "postgresql"
+brew "redis"
+brew "sqlite"
+
+# Archive and compression
+brew "unzip"
+brew "p7zip"
+brew "xz"
+
+# Mac App Store CLI
+brew "mas"

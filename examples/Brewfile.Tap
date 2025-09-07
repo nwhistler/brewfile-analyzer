@@ -1,0 +1,10 @@
+# Sample Brewfile.Tap - Homebrew Taps
+# Additional package repositories for specialized tools
+
+tap "homebrew/bundle"
+tap "homebrew/services"
+tap "homebrew/cask-fonts"
+tap "homebrew/cask-versions"
+tap "hashicorp/tap"
+tap "mongodb/brew"
+tap "heroku/brew"

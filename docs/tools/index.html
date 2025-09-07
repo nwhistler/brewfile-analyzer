@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>All Homebrew Tools</title>
+        <style>
+            body {
+                font-family:
+                    -apple-system,
+                    system-ui,
+                    Segoe UI,
+                    Roboto,
+                    Helvetica,
+                    Arial,
+                    sans-serif;
+                margin: 24px;
+            }
+            h1 {
+                margin-bottom: 8px;
+            }
+            .search {
+                display: flex;
+                gap: 8px;
+                margin: 16px 0 8px;
+            }
+            .search input {
+                flex: 1;
+                padding: 10px 12px;
+                font-size: 16px;
+                border-radius: 8px;
+            }
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 12px;
+            }
+            .card {
+                border-radius: 10px;
+                padding: 14px;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            }
+            .card h2 {
+                font-size: 18px;
+                margin: 0 0 6px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .pill {
+                font-size: 12px;
+                padding: 2px 8px;
+                border-radius: 999px;
+            }
+            .desc {
+                margin: 8px 0;
+            }
+            .example {
+                padding: 10px;
+                border-radius: 8px;
+                font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                font-size: 13px;
+                overflow-x: auto;
+            }
+            .toolbar {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                margin-bottom: 8px;
+            }
+            button {
+                padding: 8px 10px;
+                border-radius: 8px;
+                cursor: pointer;
+            }
+            .row {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+            .save {
+                margin-top: 8px;
+            }
+            .editable {
+                outline: 1px dashed;
+                padding: 6px;
+                border-radius: 6px;
+            }
+            .editable:focus {
+            }
+
+            :root {
+                --bg: #ffffff;
+                --fg: #222222;
+                --muted: #666666;
+                --border: #e5e5e5;
+                --card-bg: #ffffff;
+                --pill-bg: #f3f4f6;
+                --pill-fg: #555555;
+                --example-bg: #0b1021;
+                --example-fg: #f3f3f3;
+                --btn-bg: #ffffff;
+                --btn-border: #d1d5db;
+                --btn-bg-hover: #f9fafb;
+                --editable-outline: #dddddd;
+                --editable-focus: #2563eb;
+                --editable-focus-bg: #eff6ff;
+                --ok: #059669;
+                --err: #b91c1c;
+            }
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --bg: #0b0f19;
+                    --fg: #e6e6e6;
+                    --muted: #9aa4b2;
+                    --border: #253047;
+                    --card-bg: #111627;
+                    --pill-bg: #1e263a;
+                    --pill-fg: #cbd5e1;
+                    --example-bg: #0b1021;
+                    --example-fg: #f3f3f3;
+                    --btn-bg: #111827;
+                    --btn-border: #334155;
+                    --btn-bg-hover: #0f172a;
+                    --editable-outline: #334155;
+                    --editable-focus: #60a5fa;
+                    --editable-focus-bg: #0b1220;
+                    --ok: #34d399;
+                    --err: #f87171;
+                }
+            }
+            [data-theme="light"] {
+                --bg: #ffffff;
+                --fg: #222222;
+                --muted: #666666;
+                --border: #e5e5e5;
+                --card-bg: #ffffff;
+                --pill-bg: #f3f4f6;
+                --pill-fg: #555555;
+                --example-bg: #0b1021;
+                --example-fg: #f3f3f3;
+                --btn-bg: #ffffff;
+                --btn-border: #d1d5db;
+                --btn-bg-hover: #f9fafb;
+                --editable-outline: #dddddd;
+                --editable-focus: #2563eb;
+                --editable-focus-bg: #eff6ff;
+                --ok: #059669;
+                --err: #b91c1c;
+            }
+            [data-theme="dark"] {
+                --bg: #0b0f19;
+                --fg: #e6e6e6;
+                --muted: #9aa4b2;
+                --border: #253047;
+                --card-bg: #111627;
+                --pill-bg: #1e263a;
+                --pill-fg: #cbd5e1;
+                --example-bg: #0b1021;
+                --example-fg: #f3f3f3;
+                --btn-bg: #111827;
+                --btn-border: #334155;
+                --btn-bg-hover: #0f172a;
+                --editable-outline: #334155;
+                --editable-focus: #60a5fa;
+                --editable-focus-bg: #0b1220;
+                --ok: #34d399;
+                --err: #f87171;
+            }
+
+            body {
+                background: var(--bg);
+                color: var(--fg);
+            }
+            .meta {
+                color: var(--muted);
+            }
+            .results-count {
+                color: var(--muted);
+            }
+            .search input {
+                border: 1px solid var(--btn-border);
+                background: var(--card-bg);
+                color: var(--fg);
+            }
+            .card {
+                border: 1px solid var(--border);
+                background: var(--card-bg);
+            }
+            .pill {
+                background: var(--pill-bg);
+                color: var(--pill-fg);
+                border: 1px solid var(--border);
+            }
+            .example {
+                background: var(--example-bg);
+                color: var(--example-fg);
+            }
+            button {
+                border: 1px solid var(--btn-border);
+                background: var(--btn-bg);
+                color: var(--fg);
+            }
+            button:hover {
+                background: var(--btn-bg-hover);
+            }
+            .editable {
+                outline-color: var(--editable-outline);
+            }
+            .editable:focus {
+                outline-color: var(--editable-focus);
+                background: var(--editable-focus-bg);
+            }
+            .ok {
+                color: var(--ok);
+            }
+            .err {
+                color: var(--err);
+            }
+
+            /* Layout tweaks for toolbar and cards */
+            .toolbar {
+                justify-content: space-between;
+            }
+            .toolbar-left {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+            .toolbar-right {
+                margin-left: auto;
+            }
+            #theme-toggle {
+                width: 36px;
+                height: 36px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 8px;
+            }
+
+            .card {
+                position: relative;
+                transition:
+                    transform 0.12s ease,
+                    box-shadow 0.12s ease,
+                    border-color 0.12s ease;
+            }
+            .card.active {
+                transform: scale(1.01);
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+                border-color: var(--editable-focus);
+            }
+
+            .overlay {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: 25%;
+                background: rgba(0, 0, 0, 0.15);
+                display: none;
+                border-bottom-left-radius: 10px;
+                border-bottom-right-radius: 10px;
+            }
+            .card.active .overlay {
+                display: block;
+            }
+            .overlay-content {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                padding: 10px;
+                display: flex;
+                justify-content: flex-end;
+                gap: 8px;
+            }
+
+            .copy-toast {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                font-size: 12px;
+            }
+
+            /* Type-specific styling */
+            .type-pill {
+                margin-left: auto;
+                font-weight: 500;
+            }
+            .type-pill.type-brew {
+                background: #10b981;
+                color: #ffffff;
+                border-color: #10b981;
+            }
+            .type-pill.type-cask {
+                background: #3b82f6;
+                color: #ffffff;
+                border-color: #3b82f6;
+            }
+            .type-pill.type-mas {
+                background: #8b5cf6;
+                color: #ffffff;
+                border-color: #8b5cf6;
+            }
+            .type-pill.type-tap {
+                background: #f59e0b;
+                color: #ffffff;
+                border-color: #f59e0b;
+            }
+
+            /* Type filter buttons */
+            .filter-buttons {
+                display: flex;
+                gap: 8px;
+                margin: 8px 0;
+                flex-wrap: wrap;
+            }
+            .filter-btn {
+                padding: 6px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .filter-btn.active {
+                transform: scale(1.05);
+            }
+        </style>
+    </head>
+    <body>
+        <h1>All Homebrew Tools</h1>
+        <div class="meta">
+            Search across tool names, descriptions, and examples.
+        </div>
+
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <div class="search">
+                    <input
+                        id="q"
+                        type="search"
+                        placeholder="Search tools... (e.g. grep, search, logs, dns)"
+                        aria-label="Search tools"
+                    />
+                </div>
+                <button id="clear">Clear</button>
+            </div>
+            <div class="toolbar-right">
+                <button
+                    id="theme-toggle"
+                    title="Toggle theme"
+                    aria-label="Toggle theme"
+                >
+                    🌗
+                </button>
+            </div>
+        </div>
+
+        <div class="filter-buttons" id="filters">
+            <button class="filter-btn type-brew active" data-type="all">
+                All
+            </button>
+            <button class="filter-btn type-brew" data-type="brew">Brew</button>
+            <button class="filter-btn type-cask" data-type="cask">Cask</button>
+            <button class="filter-btn type-mas" data-type="mas">MAS</button>
+            <button class="filter-btn type-tap" data-type="tap">Tap</button>
+            <button class="filter-btn" id="recent-btn" title="Recent edits">Recent</button>
+        </div>
+        <div class="results-count" id="count">Loading…</div>
+        <div class="grid" id="grid" role="list"></div>
+
+        <script id="tools-data" type="application/json">
+            []
+        </script>
+        <script>
+            const API_BASE = window.location.origin;
+            let REPLACES = {};
+
+            async function loadReplacements() {
+                try {
+                    const res = await fetch("replacements.json", {
+                        cache: "no-store",
+                    });
+                    if (!res.ok) throw new Error("no replacements");
+                    return await res.json();
+                } catch {
+                    return {};
+                }
+            }
+
+            async function loadData() {
+                try {
+                    const res = await fetch(`${API_BASE}/api/tools`, {
+                        cache: "no-store",
+                    });
+                    if (!res.ok) throw new Error("API fetch failed");
+                    return await res.json();
+                } catch (e) {
+                    console.log("API not available; using embedded data");
+                    const embedded = document.getElementById("tools-data");
+                    if (embedded) {
+                        try {
+                            return JSON.parse(embedded.textContent);
+                        } catch {}
+                    }
+                    return [];
+                }
+            }
+
+            function cardTemplate(t) {
+                const safeId = `t-${(t.name || "").replace(/[^a-z0-9_-]/gi, "_")}`;
+                const typeClass = `type-${t.type || "unknown"}`;
+                const typeLabel = t.type || "unknown";
+
+                return `
+        <div class="card ${typeClass}" role="listitem" data-name="${t.name}" data-type="${t.type || "unknown"}">
+          <h2><span>${t.name}</span><span class="pill type-pill ${typeClass}">${typeLabel}</span></h2>
+          <div>
+            <div class="pill">description</div>
+            <div id="${safeId}-desc" class="desc" contenteditable="false">${t.description || ""}</div>
+          </div>
+          <div style="margin-top:8px">
+            <div class="pill">example</div>
+            <div id="${safeId}-ex" class="example" contenteditable="false">${t.example || ""}</div>
+          </div>
+          ${t.replaces ? `<div class=\"row\" style=\"margin-top:8px; justify-content:flex-end\"><span class=\"pill\">replaces: ${t.replaces}</span></div>` : ""}
+          <div class="overlay"><div class="overlay-content"><button class="pill" data-action="edit">Edit</button></div></div>
+        </div>
+      `;
+            }
+
+            function render(data) {
+                const grid = document.getElementById("grid");
+                const count = document.getElementById("count");
+                count.textContent = `${data.length} tool${data.length === 1 ? "" : "s"}`;
+                grid.innerHTML = data.map(cardTemplate).join("");
+
+                // Card interactions
+                grid.querySelectorAll(".card").forEach((card) => {
+                    const name = card.getAttribute("data-name");
+                    const descEl = card.querySelector(".desc");
+                    const exEl = card.querySelector(".example");
+                    const overlay = card.querySelector(".overlay");
+                    const editBtn = card.querySelector(
+                        'button[data-action="edit"]',
+                    );
+
+                    let editing = false;
+                    let origDesc = descEl.innerText;
+                    let origEx = exEl.innerText;
+                    let outsideHandler = null;
+
+                    function showCopied() {
+                        const toast = document.createElement("span");
+                        toast.className = "pill copy-toast";
+                        toast.textContent = "Copied";
+                        card.appendChild(toast);
+                        setTimeout(() => toast.remove(), 900);
+                    }
+
+                    function showSaveSuccess() {
+                        const toast = document.createElement("span");
+                        toast.className = "pill copy-toast ok";
+                        toast.textContent = "Saved";
+                        card.appendChild(toast);
+                        setTimeout(() => toast.remove(), 1500);
+                    }
+
+                    function showSaveError(message) {
+                        const toast = document.createElement("span");
+                        toast.className = "pill copy-toast err";
+                        toast.textContent = `Error: ${message}`;
+                        card.appendChild(toast);
+                        setTimeout(() => toast.remove(), 3000);
+                    }
+
+                    async function saveIfChanged() {
+                        const newDesc = descEl.innerText;
+                        const newEx = exEl.innerText;
+                        if (newDesc !== origDesc || newEx !== origEx) {
+                            try {
+                                const res = await fetch(
+                                    `${API_BASE}/api/tools/${encodeURIComponent(name)}`,
+                                    {
+                                        method: "PATCH",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                        },
+                                        body: JSON.stringify({
+                                            description: newDesc,
+                                            example: newEx,
+                                        }),
+                                    },
+                                );
+                                if (!res.ok) {
+                                    const errorText = await res.text();
+                                    throw new Error(
+                                        `Failed to save: ${errorText}`,
+                                    );
+                                }
+                                const result = await res.json();
+                                if (result.success) {
+                                    origDesc = newDesc;
+                                    origEx = newEx;
+                                    showSaveSuccess();
+                                } else {
+                                    throw new Error(
+                                        result.message || "Save failed",
+                                    );
+                                }
+                            } catch (error) {
+                                console.error("Save error:", error);
+                                showSaveError(error.message);
+                                // Optionally revert changes on error
+                                // descEl.innerText = origDesc;
+                                // exEl.innerText = origEx;
+                            }
+                        }
+                    }
+
+                    function enterEdit() {
+                        editing = true;
+                        card.classList.add("active");
+                        descEl.setAttribute("contenteditable", "true");
+                        exEl.setAttribute("contenteditable", "true");
+                        descEl.focus();
+                        outsideHandler = async (e) => {
+                            if (!card.contains(e.target)) {
+                                await saveIfChanged();
+                                exitEdit();
+                            }
+                        };
+                        document.addEventListener("click", outsideHandler);
+                    }
+                    function exitEdit() {
+                        editing = false;
+                        descEl.setAttribute("contenteditable", "false");
+                        exEl.setAttribute("contenteditable", "false");
+                        document.removeEventListener("click", outsideHandler);
+                        outsideHandler = null;
+                        card.classList.remove("active");
+                    }
+
+                    // Toggle card active to show overlay when not editing
+                    card.addEventListener("click", (e) => {
+                        if (editing) return; // ignore while editing
+                        // ignore clicks on buttons
+                        if (e.target.closest("button")) return;
+                        card.classList.toggle("active");
+                    });
+
+                    // Start editing from overlay button
+                    editBtn.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        if (!editing) enterEdit();
+                    });
+
+                    // Clipboard copy when clicking example and not editing
+                    exEl.addEventListener("click", async (e) => {
+                        if (editing) return; // don't copy while editing
+                        e.stopPropagation();
+                        try {
+                            await navigator.clipboard.writeText(exEl.innerText);
+                            showCopied();
+                        } catch {}
+                    });
+
+                    // Save on Escape
+                    card.addEventListener("keydown", async (e) => {
+                        if (editing && e.key === "Escape") {
+                            await saveIfChanged();
+                            exitEdit();
+                        }
+                    });
+                });
+            }
+
+            function normalize(s) {
+                return (s || "").toLowerCase();
+            }
+
+            let currentFilter = "all";
+            let allData = [];
+
+            async function remoteSearch() {
+                const input = document.getElementById("q");
+                const q = (input.value || "").trim();
+                const params = new URLSearchParams();
+                if (q) params.set("q", q);
+                if (currentFilter !== "all") params.set("type", currentFilter);
+                const res = await fetch(`${API_BASE}/api/tools/search?${params.toString()}`, { cache: "no-store" });
+                if (res.ok) {
+                    const data = await res.json();
+                    render(data);
+                    const count = document.getElementById("count");
+                    count.textContent = `${data.length} tool${data.length === 1 ? "" : "s"}`;
+                }
+            }
+
+            async function loadTypeCounts() {
+                try {
+                    const res = await fetch(`${API_BASE}/api/tools/types`, { cache: "no-store" });
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    const counts = data.counts || {};
+                    const map = { all: null, brew: "Brew", cask: "Cask", mas: "MAS", tap: "Tap" };
+                    Object.entries(map).forEach(([key, label]) => {
+                        const btn = key === 'all' ? document.querySelector('.filter-btn[data-type="all"]') : document.querySelector(`.filter-btn[data-type="${key}"]`);
+                        if (btn) {
+                            const c = key === 'all' ? null : (counts[key] || 0);
+                            btn.textContent = label ? `${label}${c !== null ? ` (${c})` : ''}` : btn.textContent;
+                        }
+                    });
+                } catch {}
+            }
+
+            function setupSearch(all) {
+                allData = all;
+                const input = document.getElementById("q");
+                const clear = document.getElementById("clear");
+
+                input.addEventListener("input", () => { remoteSearch(); });
+                clear.addEventListener("click", () => {
+                    input.value = "";
+                    remoteSearch();
+                    input.focus();
+                });
+
+                // Setup filter buttons
+                const filterButtons = document.querySelectorAll(".filter-btn");
+                filterButtons.forEach((btn) => {
+                    btn.addEventListener("click", () => {
+                        // ignore recent
+                        if (btn.id === 'recent-btn') return;
+                        filterButtons.forEach((b) => b.classList.remove("active"));
+                        btn.classList.add("active");
+                        currentFilter = btn.getAttribute("data-type");
+                        remoteSearch();
+                    });
+                });
+
+                // Recent button
+                const recentBtn = document.getElementById('recent-btn');
+                if (recentBtn) {
+                    recentBtn.addEventListener('click', async () => {
+                        const res = await fetch(`${API_BASE}/api/tools/recent?limit=50`, { cache: 'no-store' });
+                        if (res.ok) {
+                            const data = await res.json();
+                            render(data);
+                            const count = document.getElementById('count');
+                            count.textContent = `${data.length} recent edit${data.length === 1 ? '' : 's'}`;
+                        }
+                    });
+                }
+
+                remoteSearch();
+                loadTypeCounts();
+            }
+
+            // Theme toggle
+            (function themeInit() {
+                const btn = document.getElementById("theme-toggle");
+                const key = "tools_theme";
+                const icon = (t) =>
+                    t === "dark" ? "🌙" : t === "light" ? "🌞" : "🌗";
+                function apply(theme) {
+                    if (theme === "light" || theme === "dark") {
+                        document.documentElement.setAttribute(
+                            "data-theme",
+                            theme,
+                        );
+                    } else {
+                        document.documentElement.removeAttribute("data-theme");
+                    }
+                    btn.textContent = icon(theme || "");
+                    btn.setAttribute("aria-label", `Theme: ${theme || "auto"}`);
+                    btn.setAttribute("title", `Theme: ${theme || "auto"}`);
+                }
+                let current = localStorage.getItem(key) || "";
+                apply(current || "");
+                btn.addEventListener("click", () => {
+                    current =
+                        current === ""
+                            ? "dark"
+                            : current === "dark"
+                              ? "light"
+                              : "";
+                    localStorage.setItem(key, current);
+                    apply(current);
+                });
+            })();
+
+            Promise.all([loadData(), loadReplacements()])
+                .then(([data, repl]) => {
+                    REPLACES = repl || {};
+                    const merged = data.map((t) => ({
+                        ...t,
+                        replaces: REPLACES[t.name],
+                    }));
+                    render(merged);
+                    setupSearch(merged);
+                })
+                .catch(() => {
+                    document.getElementById("count").textContent =
+                        "API not available";
+                });
+        </script>
+    </body>
+</html>
