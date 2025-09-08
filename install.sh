@@ -13,9 +13,21 @@ NC='\033[0m' # No Color
 
 # Configuration
 PYTHON_MIN_VERSION="3.7"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Robust SCRIPT_DIR resolution (works when run from a file or via curl | bash)
+if [ -n "${BASH_SOURCE[0]}" ]; then
+  _SDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)" || _SDIR="$PWD"
+else
+  _SDIR="$PWD"
+fi
+SCRIPT_DIR="$_SDIR"
+
 HOME_BREW_DIR="$HOME/brewfile"
 TARGET_DIR="$HOME_BREW_DIR/web_app"
+
+# Upstream repo info for bootstrapping
+REPO_URL="https://github.com/nwhistler/brewfile-analyzer"
+REPO_ARCHIVE_URL="https://codeload.github.com/nwhistler/brewfile-analyzer/tar.gz/refs/heads/main"
 
 # Functions
 log_info() {
@@ -154,6 +166,27 @@ prompt_api_key() {
     return 0
 }
 
+# Self-bootstrapping: fetch repo archive if critical assets are missing
+bootstrap_repo() {
+    if [ -f "$SCRIPT_DIR/config.py" ] && [ -d "$SCRIPT_DIR/scripts" ]; then
+        return 0
+    fi
+
+    log_info "Bootstrapping installer assets from $REPO_URL..."
+    REPO_TMP="$(mktemp -d -t brewfile-analyzer.XXXXXX)"
+    if curl -fsSL "$REPO_ARCHIVE_URL" | tar -xz -C "$REPO_TMP" --strip-components=1; then
+        SCRIPT_DIR="$REPO_TMP"
+        log_success "Fetched repository assets into: $SCRIPT_DIR"
+        if [ ! -f "$SCRIPT_DIR/config.py" ] || [ ! -d "$SCRIPT_DIR/scripts" ]; then
+            log_error "Bootstrapped repo is missing required files (config.py or scripts/)."
+            exit 1
+        fi
+    else
+        log_error "Failed to download repository archive from $REPO_ARCHIVE_URL"
+        exit 1
+    fi
+}
+
 check_python() {
     log_info "Checking Python installation..."
 
@@ -287,10 +320,10 @@ run_setup() {
 
 test_installation() {
     log_info "Testing installation..."
-    cd "$SCRIPT_DIR"
+    cd "$TARGET_DIR"
 
-    # Test configuration
-    if python3 -c "from config import get_config; get_config()" 2>/dev/null; then
+    # Test configuration (from the installed app path)
+    if python3 -c "import sys; sys.path.insert(0, '$TARGET_DIR'); from config import get_config; get_config()" >/dev/null 2>&1; then
         log_success "Configuration module working"
     else
         log_error "Configuration module test failed"
@@ -325,9 +358,9 @@ generate_initial_data() {
 
     # Run generator from installed app location, reading Brewfiles from $HOME_BREW_DIR
     # and writing output to the app's docs directory via BREWFILE_OUTPUT_ROOT
-if run_with_spinner "Generating initial data (if Brewfiles present)" \
-       env BREWFILE_PROJECT_ROOT="$HOME_BREW_DIR" BREWFILE_OUTPUT_ROOT="$TARGET_DIR" \
-       python3 "$TARGET_DIR/scripts/gen_tools_data.py" $AI_ARGS; then
+    if run_with_spinner "Generating initial data (if Brewfiles present)" \
+           env BREWFILE_PROJECT_ROOT="$HOME_BREW_DIR" BREWFILE_OUTPUT_ROOT="$TARGET_DIR" \
+           python3 "$TARGET_DIR/scripts/gen_tools_data.py" $AI_ARGS; then
         log_success "Initial data generated successfully"
 
         # Check output files at target
@@ -408,7 +441,7 @@ install_requirements() {
     fi
 
     # Prefer venv pip if available
-if [ -x "$TARGET_DIR/.venv/bin/pip" ]; then
+    if [ -x "$TARGET_DIR/.venv/bin/pip" ]; then
         PIP_CMD="$TARGET_DIR/.venv/bin/pip"
     else
         PIP_CMD="pip3"
@@ -454,7 +487,7 @@ install_optional_deps() {
     echo
     read -p "Install optional dependencies for enhanced features? (y/N) " -n 1 -r
     echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
         log_info "Installing optional dependencies..."
 
         # Try to install optional packages with spinner
@@ -520,7 +553,7 @@ install_web_app() {
         cp -R "$SCRIPT_DIR/docs/tools" "$TARGET_DIR/docs/" 2>/dev/null || log_warning "Could not copy docs/tools (will be created on first run)"
     fi
 
-# Generate initial data at target (if Brewfiles exist)
+    # Generate initial data at target (if Brewfiles exist)
     if run_with_spinner "Generating data in $TARGET_DIR (if Brewfiles present)" \
        env BREWFILE_PROJECT_ROOT="$HOME_BREW_DIR" python3 "$TARGET_DIR/scripts/gen_tools_data.py"; then
         log_success "Initial data generated in $TARGET_DIR/docs/tools"
@@ -542,7 +575,7 @@ setup_venv() {
             return
         fi
         log_info "Creating virtual environment at $TARGET_DIR/.venv"
-if run_with_spinner "Creating virtual environment at $TARGET_DIR/.venv" python3 -m venv "$TARGET_DIR/.venv"; then
+        if run_with_spinner "Creating virtual environment at $TARGET_DIR/.venv" python3 -m venv "$TARGET_DIR/.venv"; then
             log_success "Virtual environment created"
             echo "To activate: source $TARGET_DIR/.venv/bin/activate"
         else
@@ -650,62 +683,6 @@ offer_ai_descriptions() {
     fi
 }
 
-# Main installation process
-main() {
-    echo -e "${BLUE}"
-    echo "╔═══════════════════════════════════════╗"
-    echo "║        Brewfile Analyzer Setup        ║"
-    echo "║     One-Command Installation Tool     ║"
-    echo "╚═══════════════════════════════════════╝"
-    echo -e "${NC}"
-    echo
-
-    log_info "Starting installation process..."
-    echo
-
-    # System checks
-    check_python
-    check_homebrew
-    check_brewfiles
-    echo
-
-    # Prepare target app first to avoid duplicate output locations
-    install_web_app
-
-    # Installation steps
-    run_setup
-    test_installation
-
-    # Offer AI and then generate data into the app's docs
-    offer_ai_descriptions
-    generate_initial_data
-    echo
-
-    # Python dependencies
-    install_requirements
-
-    # Virtual environment (if available)
-    setup_venv
-
-    # Optional enhancements
-    install_optional_deps
-
-    # Deploy app to home directory target
-    install_web_app
-
-    # Offer brew bundle integration
-    setup_brew_bundle_integration
-
-    # Success message
-    show_next_steps
-
-    # Offer to create desktop shortcut now that app is deployed
-    create_desktop_shortcut
-
-    # Offer to remove the installer repository directory
-    offer_cleanup
-}
-
 offer_cleanup() {
     echo
     read -p "Remove the original installer repository at $SCRIPT_DIR? (y/N) " -n 1 -r
@@ -722,6 +699,68 @@ offer_cleanup() {
     else
         log_info "Keeping installer repository. You can remove it later manually."
     fi
+}
+
+install_web_app_if_needed_then_test() {
+    # Prepare target app first to avoid duplicate output locations
+    install_web_app
+    # Validate installation from the deployed location
+    test_installation
+}
+
+# Main installation process
+main() {
+    echo -e "${BLUE}"
+    echo "╔═══════════════════════════════════════╗"
+    echo "║        Brewfile Analyzer Setup        ║"
+    echo "║     One-Command Installation Tool     ║"
+    echo "╚═══════════════════════════════════════╝"
+    echo -e "${NC}"
+    echo
+
+    log_info "Starting installation process..."
+    echo
+
+    # Ensure we have local assets even when run via curl | bash
+    bootstrap_repo
+
+    # System checks
+    check_python
+    check_homebrew
+    check_brewfiles
+    echo
+
+    # Install app to home directory target and validate
+    install_web_app_if_needed_then_test
+
+    # Offer AI and then generate data into the app's docs
+    offer_ai_descriptions
+    generate_initial_data
+    echo
+
+    # Python dependencies
+    install_requirements
+
+    # Virtual environment (if available)
+    setup_venv
+
+    # Optional enhancements
+    install_optional_deps
+
+    # Deploy app again to ensure latest assets in TARGET_DIR (no-op if already copied)
+    install_web_app
+
+    # Offer brew bundle integration
+    setup_brew_bundle_integration
+
+    # Success message
+    show_next_steps
+
+    # Offer to create desktop shortcut now that app is deployed
+    create_desktop_shortcut
+
+    # Offer to remove the installer repository directory
+    offer_cleanup
 }
 
 # Handle script arguments
@@ -753,6 +792,8 @@ case "${1:-}" in
     --check-only)
         echo "System Check Mode"
         echo "=================="
+        # Ensure assets available for accurate detection messages
+        bootstrap_repo
         check_python
         check_homebrew
         check_brewfiles
