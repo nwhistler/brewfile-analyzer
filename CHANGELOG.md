@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Future changes will be listed here
 
 ### Fixed
-- Future fixes will be listed here
+- Brewfile parsing now supports single- and double-quoted entries, optional whitespace after keywords, and case-insensitive matching for brew/cask/mas/tap lines (e.g., handles lines like `cask'hovrly'`).
+- Detection now includes lowercase `brewfile` (and lowercase split variants) in addition to `Brewfile`.
 
 ## [1.0.0] - 2024-01-15
 

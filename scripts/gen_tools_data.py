@@ -33,12 +33,12 @@ except ImportError:
     load_ai_config = None
     print("AI description generation not available - using fallback descriptions")
 
-# Regex patterns for parsing Brewfiles
+# Regex patterns for parsing Brewfiles (robust to single/double quotes and spacing)
 PATTERNS = {
-    'brew': re.compile(r'^\s*brew\s+"([^"]+)"'),
-    'cask': re.compile(r'^\s*cask\s+"([^"]+)"'),
-    'mas': re.compile(r'^\s*mas\s+"([^"]+)",\s*id:\s*(\d+)'),
-    'tap': re.compile(r'^\s*tap\s+"([^"]+)"')
+    'brew': re.compile(r'^\s*brew\s*["\']([^"\']+)["\']', re.IGNORECASE),
+    'cask': re.compile(r'^\s*cask\s*["\']([^"\']+)["\']', re.IGNORECASE),
+    'mas': re.compile(r'^\s*mas\s*["\']([^"\']+)["\']\s*,\s*id:\s*(\d+)', re.IGNORECASE),
+    'tap': re.compile(r'^\s*tap\s*["\']([^"\']+)["\']', re.IGNORECASE)
 }
 
 # Known examples for CLI tools - feel free to customize!
