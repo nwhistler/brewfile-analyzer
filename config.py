@@ -24,7 +24,7 @@ class BrewfileConfig:
             cwd = Path.cwd()
             # Check if we're in a brewfile-analyzer directory or have Brewfiles in current dir
             if (cwd.name == 'brewfile-analyzer' or
-                any((cwd / f).exists() for f in ['Brewfile', 'Brewfile.Brew', 'Brewfile.Cask', 'Brewfile.Mas', 'Brewfile.Tap'])):
+                any((cwd / f).exists() for f in ['Brewfile', 'brewfile', 'Brewfile.Brew', 'Brewfile.Cask', 'Brewfile.Mas', 'Brewfile.Tap', 'brewfile.brew', 'brewfile.cask', 'brewfile.mas', 'brewfile.tap'])):
                 self.root = cwd
             else:
                 # Fallback to script location detection
@@ -81,17 +81,30 @@ class BrewfileConfig:
             'mas': self.root / 'Brewfile.Mas',
             'tap': self.root / 'Brewfile.Tap'
         }
+        # Also accept lowercase split names if present
+        split_files_lower = {
+            'brew': self.root / 'brewfile.brew',
+            'cask': self.root / 'brewfile.cask',
+            'mas': self.root / 'brewfile.mas',
+            'tap': self.root / 'brewfile.tap'
+        }
 
         found_split = False
         for item_type, file_path in split_files.items():
             if file_path.exists():
                 self.brewfiles[item_type] = file_path
                 found_split = True
+        # Check lowercase split files too
+        for item_type, file_path in split_files_lower.items():
+            if file_path.exists():
+                self.brewfiles[item_type] = file_path
+                found_split = True
 
-        # If no split files found, check for single Brewfile
+        # If no split files found, check for single Brewfile (case-insensitive)
         if not found_split:
-            single_brewfile = self.root / 'Brewfile'
-            if single_brewfile.exists():
+            candidates = [self.root / 'Brewfile', self.root / 'brewfile']
+            single_brewfile = next((p for p in candidates if p.exists()), None)
+            if single_brewfile is not None:
                 print(f"Found single Brewfile: {single_brewfile}")
                 # Use the same file for all types (will be filtered by regex)
                 self.brewfiles = {
@@ -102,8 +115,8 @@ class BrewfileConfig:
                 }
             else:
                 print("⚠️  No Brewfiles found! Please ensure you have either:")
-                print("   - Split files: Brewfile.Brew, Brewfile.Cask, etc.")
-                print("   - Single file: Brewfile")
+                print("   - Split files: Brewfile.Brew, Brewfile.Cask, etc. (or lowercase variants)")
+                print("   - Single file: Brewfile (or brewfile)")
                 self.brewfiles = {}
 
     def get_available_types(self):
