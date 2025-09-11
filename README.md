@@ -31,7 +31,14 @@ python3 scripts/gen_tools_data.py
 
 # 3) Start the combined server (UI + API)
 python3 scripts/serve_combined.py
-# Open: http://127.0.0.1:8000/docs/tools/
+Open: http://127.0.0.1:8000/docs/tools/
+
+## 💻 macOS installer options
+After the installer runs, you’ll be asked:
+- Enable automatic update checks (LaunchAgent, runs every 6h). No macOS notifications; updates apply silently.
+- Run the combined server at login (LaunchAgent with KeepAlive). If enabled, the server starts at login and persists across restarts.
+
+Manage later via launchctl and ~/Library/LaunchAgents (labels: `com.brewfile-analyzer.updatecheck`, `com.brewfile-analyzer.server`).
 ```
 
 Requirements
@@ -80,6 +87,7 @@ Base URL: http://127.0.0.1:8000
 - GET /api/tools/types
   - Counts by type
 - GET /api/tools/recent?limit=50
+  - Optional: `days` (default 30) — e.g., `/api/tools/recent?days=7`
   - Recently edited tools
 - GET /api/query?sql=SELECT ...
   - Read-only SELECT queries for advanced usage (Raycast integrations, etc.)
@@ -109,6 +117,8 @@ AI (optional):
 - DuckDB is the source of truth (no CSV/JSON snapshots required)
 - The generator parses Brewfiles and upserts into DuckDB, preserving user edits
 - The server reads/writes to DuckDB; the web UI fetches via API
+- Newly added tools set `last_edited` on insert so they appear in Recent immediately
+- On successful self updates, the UI shows a brief banner (fades automatically)
 
 Project Structure
 ```
