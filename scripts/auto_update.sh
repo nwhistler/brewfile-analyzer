@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # Auto update helper for Brewfile Analyzer
 # - Runs a silent background update check and applies updates if available
-# - On first run, silently sets up a launchd task to check periodically (no prompts)
+# - On first run, optionally sets up a launchd task to check periodically (with a concise prompt)
 
 set -euo pipefail
 
@@ -22,6 +22,64 @@ is_macos() {
 
 have_osascript() {
   command -v osascript >/dev/null 2>&1
+}
+
+# First-run prompt (concise) with optional Details…
+prompt_schedule_setup() {
+  # Returns 0 to enable, 1 to skip
+  local title="Brewfile Analyzer"
+  local msg_main
+  msg_main=$(cat <<MSG
+Enable automatic update checks?
+
+Brewfile Analyzer will check for updates every 6 hours in the background.
+You can turn this off anytime.
+MSG
+)
+  local msg_details
+  msg_details=$(cat <<DET
+What this does:
+
+• Creates a per-user LaunchAgent:
+  $PLIST_PATH
+• Runs every 6 hours and at login
+• Executes:
+  $SCRIPT_DIR/auto_update.sh scheduled
+• Logs:
+  $HOME/Library/Logs/brewfile-analyzer-updatecheck.out.log
+  $HOME/Library/Logs/brewfile-analyzer-updatecheck.err.log
+• Disable anytime:
+  launchctl unload -w $PLIST_PATH && rm -f $PLIST_PATH
+DET
+)
+
+  if is_macos && have_osascript; then
+    while true; do
+      local osa
+      if osa=$(osascript -e "display dialog \"${msg_main}\" buttons {\"Not now\",\"Details…\",\"Enable\"} default button \"Enable\" with title \"${title}\" with icon note giving up after 60"); then
+        case "$osa" in
+          *"button returned:Enable"*) return 0 ;;
+          *"button returned:Details…"*)
+            osascript -e "display dialog \"${msg_details}\" buttons {\"OK\"} default button \"OK\" with title \"${title}\" with icon note" || true
+            continue ;;
+          *) return 1 ;;
+        esac
+      else
+        return 1
+      fi
+    done
+  else
+    # Fallback to tty prompt (if interactive)
+    if [ -t 0 ]; then
+      printf "Enable automatic update checks? [Y/n]: "
+      read -r ans || true
+      case "${ans:-Y}" in
+        Y|y|Yes|yes) return 0;;
+        *) return 1;;
+      esac
+    fi
+    return 1
+  fi
 }
 
 
@@ -78,8 +136,7 @@ PLIST
 }
 
 maybe_setup_schedule() {
-  # Silent setup: no prompts.
-  # Skip in scheduled runs or if we've already set up once
+  # First-run prompt (concise). Skip in scheduled runs or if already set up.
   if [[ "${1:-}" == "scheduled" ]]; then
     return 0
   fi
@@ -87,13 +144,15 @@ maybe_setup_schedule() {
     return 0
   fi
 
-  if is_macos; then
-    install_launchagent
-  else
-    echo "Non-macOS: periodic scheduling not supported by this script." >&2
+  if prompt_schedule_setup; then
+    if is_macos; then
+      install_launchagent
+    else
+      echo "Non-macOS: periodic scheduling not supported by this script." >&2
+    fi
   fi
 
-  # Mark so we don't attempt setup again on future runs
+  # Mark so we don't prompt again on future runs
   : > "$MARKER_PROMPTED"
 }
 
