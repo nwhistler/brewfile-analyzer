@@ -160,7 +160,8 @@ PLIST
 }
 
 maybe_setup_schedule() {
-  # Skip in scheduled runs or if we've already prompted once
+  # Silent setup: no prompts.
+  # Skip in scheduled runs or if we've already set up once
   if [[ "${1:-}" == "scheduled" ]]; then
     return 0
   fi
@@ -168,15 +169,13 @@ maybe_setup_schedule() {
     return 0
   fi
 
-  if prompt_schedule_setup; then
-    if is_macos; then
-      install_launchagent
-    else
-      echo "Non-macOS: periodic scheduling not supported by this script." >&2
-    fi
+  if is_macos; then
+    install_launchagent
+  else
+    echo "Non-macOS: periodic scheduling not supported by this script." >&2
   fi
 
-  # Mark so we don't prompt again on future runs
+  # Mark so we don't attempt setup again on future runs
   : > "$MARKER_PROMPTED"
 }
 
