@@ -104,7 +104,7 @@ def upsert_tool_merged(con, new_tool: Dict[str, Any]) -> None:
         con.execute(
             """
             INSERT INTO tools(name, type, description, example, mas_id, user_edited, last_edited)
-            VALUES (?, ?, ?, ?, ?, FALSE, NULL)
+            VALUES (?, ?, ?, ?, ?, FALSE, CURRENT_TIMESTAMP)
             """,
             [
                 name,
