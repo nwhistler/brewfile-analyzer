@@ -40,7 +40,45 @@ from pathlib import Path
 from typing import Iterable, List, Optional, Tuple
 import fnmatch
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+def detect_repo_root() -> Path:
+    """Best-effort detection of the Git repository root.
+
+    Tries, in order:
+    1) git rev-parse --show-toplevel from current working directory
+    2) Walk up from script location until a .git directory is found
+    3) Walk up from current working directory until a .git directory is found
+    """
+    # 1) Ask Git from CWD
+    try:
+        cp = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            cwd=str(Path.cwd()),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if cp.returncode == 0 and cp.stdout.strip():
+            return Path(cp.stdout.strip()).resolve()
+    except Exception:
+        pass
+
+    # 2) Search upward from script path
+    script_path = Path(__file__).resolve()
+    for parent in [script_path] + list(script_path.parents):
+        candidate = parent if parent.is_dir() else parent.parent
+        if (candidate / ".git").exists():
+            return candidate
+
+    # 3) Search upward from CWD
+    cwd = Path.cwd().resolve()
+    for parent in [cwd] + list(cwd.parents):
+        if (parent / ".git").exists():
+            return parent
+
+    raise RuntimeError("Could not detect Git repository root. Run this inside a Git repo.")
+
+
+REPO_ROOT = detect_repo_root()
 BACKUP_ROOT = REPO_ROOT / "backups" / "repo_sync"
 
 
