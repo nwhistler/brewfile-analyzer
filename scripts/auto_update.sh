@@ -181,14 +181,8 @@ maybe_setup_schedule() {
 }
 
 run_check() {
-  "$PY_BIN" "$SELF_UPDATE" --check --quiet --prompt --repo nwhistler/brewfile-analyzer --ref main || {
-    code=$?
-    # Exit code 10 means updates available (handled by --prompt), others are errors
-    if [[ $code -ne 10 && $code -ne 0 ]]; then
-      echo "Updater returned error code $code" >&2
-      exit $code
-    fi
-  }
+  # Run silently in the background; apply updates if available, no prompts
+  "$PY_BIN" "$SELF_UPDATE" --apply --repo nwhistler/brewfile-analyzer --ref main >/dev/null 2>&1 || true
 }
 
 main() {

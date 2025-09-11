@@ -193,6 +193,22 @@ def main() -> int:
         if not args.apply:
             print("\nNothing changed. Re-run with --apply to perform updates.")
         else:
+            # If any real changes happened, drop a lightweight notice for the UI
+            changed = any(line.startswith("UPDATED:") or line.startswith("DELETED:") for line in log)
+            if changed:
+                try:
+                    notice_dir = APP_ROOT / "docs" / "tools"
+                    notice_dir.mkdir(parents=True, exist_ok=True)
+                    notice_path = notice_dir / "update_notice.json"
+                    from datetime import datetime
+                    import json as _json
+                    payload = {
+                        "updated_at": datetime.now().isoformat(timespec="seconds"),
+                        "message": "Brewfile Analyzer was updated successfully.",
+                    }
+                    notice_path.write_text(_json.dumps(payload), encoding="utf-8")
+                except Exception:
+                    pass
             print("\n✅ Update complete.")
             print("- Preserved: data/, backups/, .venv/, docs/tools/tools.json|.csv")
             print("- Backups at: backups/self_update/<timestamp>/")
