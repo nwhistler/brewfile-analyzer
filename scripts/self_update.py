@@ -28,7 +28,6 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
-import os
 import shutil
 import sys
 import tempfile
@@ -137,7 +136,7 @@ def download_zip(repo: str, ref: str, out_path: Path) -> None:
         pass
     try:
         urllib.request.urlretrieve(url, out_path)
-    except Exception as e:
+    except Exception:
         # Fallback to archive/<ref>.zip (works for tags/commits)
         url2 = f"https://github.com/{repo}/archive/{ref}.zip"
         urllib.request.urlretrieve(url2, out_path)
