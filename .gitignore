@@ -234,3 +234,6 @@ playground/
 # Lock files from different package managers
 poetry.lock
 Pipfile.lock
+
+# Agent rules
+WARP.md
