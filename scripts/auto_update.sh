@@ -24,11 +24,8 @@ have_osascript() {
   command -v osascript >/dev/null 2>&1
 }
 
-# First-run prompt (concise); supports enabling server as well
-# Return codes:
-#   0 = enable auto-updates only
-#   2 = enable auto-updates AND background server
-#   1 = skip
+# First-run prompt (concise)
+# Return codes: 0 = enable, 1 = skip
 prompt_schedule_setup() {
   local title="Brewfile Analyzer"
   local msg_main
@@ -42,10 +39,9 @@ MSG
 
   if is_macos && have_osascript; then
     local osa
-    if osa=$(osascript -e "display dialog \"${msg_main}\" buttons {\"Not now\",\"Enable + Server\",\"Enable\"} default button \"Enable\" with title \"${title}\" with icon note giving up after 60"); then
+    if osa=$(osascript -e "display dialog \"${msg_main}\" buttons {\"Not now\",\"Enable\"} default button \"Enable\" with title \"${title}\" with icon note giving up after 60"); then
       case "$osa" in
         *"button returned:Enable"*) return 0 ;;
-        *"button returned:Enable + Server"*) return 2 ;;
         *) return 1 ;;
       esac
     fi
@@ -118,12 +114,7 @@ maybe_setup_schedule() {
     return 0
   fi
 
-  local choice_code=1
   if prompt_schedule_setup; then
-    choice_code=$?
-  fi
-
-  if [[ $choice_code -eq 0 || $choice_code -eq 2 ]]; then
     if is_macos; then
       install_launchagent
     else
@@ -131,16 +122,10 @@ maybe_setup_schedule() {
     fi
   fi
 
-  if [[ $choice_code -eq 2 ]]; then
-    # User opted to run the combined server in background too
-    install_server_launchagent
-  fi
-
   # Mark so we don't prompt again on future runs
   : > "$MARKER_PROMPTED"
 }
 
-install_server_launchagent() {
   local SERVER_LABEL="com.nwhistler.brewfile-analyzer.server"
   local SERVER_PLIST="$LAUNCH_AGENTS_DIR/${SERVER_LABEL}.plist"
   mkdir -p "$LAUNCH_AGENTS_DIR"

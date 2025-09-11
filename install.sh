@@ -374,6 +374,108 @@ generate_initial_data() {
     fi
 }
 
+configure_auto_update_option() {
+    if [[ "$OSTYPE" != "darwin"* ]]; then
+        return
+    fi
+    echo
+    read -p "Enable automatic update checks via LaunchAgent (runs every 6h)? (y/N) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        local LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
+        local LABEL="com.nwhistler.brewfile-analyzer.updatecheck"
+        local PLIST="$LAUNCH_AGENTS_DIR/${LABEL}.plist"
+        mkdir -p "$LAUNCH_AGENTS_DIR"
+        cat > "$PLIST" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>${LABEL}</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>${TARGET_DIR}/scripts/auto_update.sh</string>
+      <string>scheduled</string>
+    </array>
+    <key>StartInterval</key>
+    <integer>21600</integer>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>${HOME}/Library/Logs/brewfile-analyzer-updatecheck.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>${HOME}/Library/Logs/brewfile-analyzer-updatecheck.err.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>PATH</key>
+      <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+      <key>PY_BIN</key>
+      <string>${TARGET_DIR}/.venv/bin/python</string>
+    </dict>
+  </dict>
+</plist>
+PLIST
+        launchctl unload "$PLIST" >/dev/null 2>&1 || true
+        launchctl load -w "$PLIST"
+        log_success "Auto-update LaunchAgent installed: $PLIST"
+    fi
+}
+
+configure_server_option() {
+    if [[ "$OSTYPE" != "darwin"* ]]; then
+        return
+    fi
+    echo
+    read -p "Run the combined server in background at login (persist across restarts)? (y/N) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        local LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
+        local LABEL="com.nwhistler.brewfile-analyzer.server"
+        local PLIST="$LAUNCH_AGENTS_DIR/${LABEL}.plist"
+        mkdir -p "$LAUNCH_AGENTS_DIR"
+        # Prefer venv python if present
+        local PY_CMD="${TARGET_DIR}/.venv/bin/python"
+        if [[ ! -x "$PY_CMD" ]]; then
+            PY_CMD="python3"
+        fi
+        cat > "$PLIST" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>${LABEL}</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>${PY_CMD}</string>
+      <string>${TARGET_DIR}/scripts/serve_combined.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>${TARGET_DIR}</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>${HOME}/Library/Logs/brewfile-analyzer-server.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>${HOME}/Library/Logs/brewfile-analyzer-server.err.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>PATH</key>
+      <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+  </dict>
+</plist>
+PLIST
+        launchctl unload "$PLIST" >/dev/null 2>&1 || true
+        launchctl load -w "$PLIST"
+        log_success "Server LaunchAgent installed: $PLIST"
+        echo "Server will start automatically at login and be kept alive."
+    fi
+}
+
 show_next_steps() {
     echo
     echo -e "${BLUE}🎉 Installation Complete!${NC}"
@@ -750,8 +852,12 @@ main() {
     # Deploy app again to ensure latest assets in TARGET_DIR (no-op if already copied)
     install_web_app
 
-    # Offer brew bundle integration
+# Offer brew bundle integration
     setup_brew_bundle_integration
+
+    # Offer macOS LaunchAgents
+    configure_auto_update_option
+    configure_server_option
 
     # Success message
     show_next_steps
