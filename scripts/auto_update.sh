@@ -24,9 +24,12 @@ have_osascript() {
   command -v osascript >/dev/null 2>&1
 }
 
-# First-run prompt (concise) with optional Details…
+# First-run prompt (concise); supports enabling server as well
+# Return codes:
+#   0 = enable auto-updates only
+#   2 = enable auto-updates AND background server
+#   1 = skip
 prompt_schedule_setup() {
-  # Returns 0 to enable, 1 to skip
   local title="Brewfile Analyzer"
   local msg_main
   msg_main=$(cat <<MSG
@@ -36,38 +39,17 @@ Brewfile Analyzer will check for updates every 6 hours in the background.
 You can turn this off anytime.
 MSG
 )
-  local msg_details
-  msg_details=$(cat <<DET
-What this does:
-
-• Creates a per-user LaunchAgent:
-  $PLIST_PATH
-• Runs every 6 hours and at login
-• Executes:
-  $SCRIPT_DIR/auto_update.sh scheduled
-• Logs:
-  $HOME/Library/Logs/brewfile-analyzer-updatecheck.out.log
-  $HOME/Library/Logs/brewfile-analyzer-updatecheck.err.log
-• Disable anytime:
-  launchctl unload -w $PLIST_PATH && rm -f $PLIST_PATH
-DET
-)
 
   if is_macos && have_osascript; then
-    while true; do
-      local osa
-      if osa=$(osascript -e "display dialog \"${msg_main}\" buttons {\"Not now\",\"Details…\",\"Enable\"} default button \"Enable\" with title \"${title}\" with icon note giving up after 60"); then
-        case "$osa" in
-          *"button returned:Enable"*) return 0 ;;
-          *"button returned:Details…"*)
-            osascript -e "display dialog \"${msg_details}\" buttons {\"OK\"} default button \"OK\" with title \"${title}\" with icon note" || true
-            continue ;;
-          *) return 1 ;;
-        esac
-      else
-        return 1
-      fi
-    done
+    local osa
+    if osa=$(osascript -e "display dialog \"${msg_main}\" buttons {\"Not now\",\"Enable + Server\",\"Enable\"} default button \"Enable\" with title \"${title}\" with icon note giving up after 60"); then
+      case "$osa" in
+        *"button returned:Enable"*) return 0 ;;
+        *"button returned:Enable + Server"*) return 2 ;;
+        *) return 1 ;;
+      esac
+    fi
+    return 1
   else
     # Fallback to tty prompt (if interactive)
     if [ -t 0 ]; then
@@ -125,14 +107,6 @@ PLIST
   # Load (reload if exists)
   launchctl unload "$PLIST_PATH" >/dev/null 2>&1 || true
   launchctl load -w "$PLIST_PATH"
-
-  # Notify user on first setup (macOS only)
-  if is_macos && have_osascript; then
-    local title="Brewfile Analyzer"
-    local subtitle="Auto-update enabled"
-    local msg="Checks every 6h via LaunchAgent. Manage with: launchctl unload -w $PLIST_PATH. Logs: ~/Library/Logs/."
-    osascript -e "display notification \"$msg\" with title \"$title\" subtitle \"$subtitle\"" || true
-  fi
 }
 
 maybe_setup_schedule() {
@@ -144,7 +118,12 @@ maybe_setup_schedule() {
     return 0
   fi
 
+  local choice_code=1
   if prompt_schedule_setup; then
+    choice_code=$?
+  fi
+
+  if [[ $choice_code -eq 0 || $choice_code -eq 2 ]]; then
     if is_macos; then
       install_launchagent
     else
@@ -152,8 +131,54 @@ maybe_setup_schedule() {
     fi
   fi
 
+  if [[ $choice_code -eq 2 ]]; then
+    # User opted to run the combined server in background too
+    install_server_launchagent
+  fi
+
   # Mark so we don't prompt again on future runs
   : > "$MARKER_PROMPTED"
+}
+
+install_server_launchagent() {
+  local SERVER_LABEL="com.nwhistler.brewfile-analyzer.server"
+  local SERVER_PLIST="$LAUNCH_AGENTS_DIR/${SERVER_LABEL}.plist"
+  mkdir -p "$LAUNCH_AGENTS_DIR"
+  cat > "$SERVER_PLIST" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>${SERVER_LABEL}</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>${PY_BIN}</string>
+      <string>${APP_DIR}/scripts/serve_combined.py</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>WorkingDirectory</key>
+    <string>${APP_DIR}</string>
+
+    <key>StandardOutPath</key>
+    <string>${HOME}/Library/Logs/brewfile-analyzer-server.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>${HOME}/Library/Logs/brewfile-analyzer-server.err.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>PATH</key>
+      <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+  </dict>
+</plist>
+PLIST
+  launchctl unload "$SERVER_PLIST" >/dev/null 2>&1 || true
+  launchctl load -w "$SERVER_PLIST"
 }
 
 run_check() {
