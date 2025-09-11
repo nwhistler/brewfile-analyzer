@@ -13,7 +13,7 @@ PY_BIN="${PY_BIN:-/usr/bin/python3}"
 
 MARKER_PROMPTED="$APP_DIR/.auto_update_prompted"
 LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
-PLIST_LABEL="com.nwhistler.brewfile-analyzer.updatecheck"
+PLIST_LABEL="com.brewfile-analyzer.updatecheck"
 PLIST_PATH="$LAUNCH_AGENTS_DIR/${PLIST_LABEL}.plist"
 
 is_macos() {

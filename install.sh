@@ -383,7 +383,7 @@ configure_auto_update_option() {
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         local LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
-        local LABEL="com.nwhistler.brewfile-analyzer.updatecheck"
+local LABEL="com.brewfile-analyzer.updatecheck"
         local PLIST="$LAUNCH_AGENTS_DIR/${LABEL}.plist"
         mkdir -p "$LAUNCH_AGENTS_DIR"
         cat > "$PLIST" <<PLIST
@@ -431,7 +431,7 @@ configure_server_option() {
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         local LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
-        local LABEL="com.nwhistler.brewfile-analyzer.server"
+local LABEL="com.brewfile-analyzer.server"
         local PLIST="$LAUNCH_AGENTS_DIR/${LABEL}.plist"
         mkdir -p "$LAUNCH_AGENTS_DIR"
         # Prefer venv python if present
