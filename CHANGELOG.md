@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2025-09-11
+
+### Added
+- Silent background updates: `scripts/auto_update.sh` applies updates without prompts; first-run shows a concise, one-time prompt to enable the LaunchAgent.
+- Update banner in UI: on next load after an update, a small banner appears and fades away.
+- Installer options (macOS):
+  - Enable automatic update checks (LaunchAgent, every 6h)
+  - Optionally run the combined server in the background at login (LaunchAgent, KeepAlive)
+- API: `/api/tools/recent` now accepts a `days` query parameter (default 30) to scope "Recent" to a time window.
+
+### Changed
+- New DuckDB insert behavior sets `last_edited = CURRENT_TIMESTAMP` for newly added tools, so they appear in "Recent" immediately.
+- LaunchAgent labels no longer include the author handle; renamed to `com.brewfile-analyzer.updatecheck` and `com.brewfile-analyzer.server`.
+- WARP.md updated with Ruff/CI rules; WARP.md added to .gitignore.
+
+### Removed
+- Developer-only `repo_update.py` (use `scripts/self_update.py` for installed app updates).
+
 ### Added
 - Future enhancements will be listed here
 

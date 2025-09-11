@@ -231,6 +231,9 @@ scratch/
 experiments/
 playground/
 
+# Repo sync backups
+backups/
+
 # Lock files from different package managers
 poetry.lock
 Pipfile.lock

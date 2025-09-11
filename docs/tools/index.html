@@ -327,6 +327,23 @@
                 transform: scale(1.05);
             }
         </style>
+        <style>
+            /* Update banner */
+            #update-banner {
+                display: none;
+                margin: 12px 0;
+                padding: 10px 12px;
+                border-radius: 8px;
+                border: 1px solid var(--border);
+                background: var(--pill-bg);
+                color: var(--pill-fg);
+                animation: fadeout 1s ease forwards;
+                animation-delay: 4s;
+            }
+            @keyframes fadeout {
+                to { opacity: 0; visibility: hidden; height: 0; margin: 0; padding: 0; }
+            }
+        </style>
         <link rel="icon" href="favicon.svg" type="image/svg+xml">
         <link rel="icon" sizes="any" href="favicon.svg">
         <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -341,6 +358,7 @@
             Search across tool names, descriptions, and examples.
         </div>
 
+        <div id="update-banner" role="status" aria-live="polite"></div>
         <div class="toolbar">
             <div class="toolbar-left">
                 <div class="search">
@@ -698,7 +716,29 @@
                 });
             })();
 
-            Promise.all([loadData(), loadReplacements()])
+            async function maybeShowUpdateBanner() {
+                try {
+                    const res = await fetch("update_notice.json", { cache: "no-store" });
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    const ts = data.updated_at || "";
+                    const key = "tools_update_notice_seen";
+                    const lastSeen = localStorage.getItem(key) || "";
+                    if (ts && ts !== lastSeen) {
+                        const el = document.getElementById("update-banner");
+                        if (el) {
+                            el.textContent = data.message || `Updated on ${ts}`;
+                            el.style.display = "block";
+                            // Mark as seen after a short delay
+                            setTimeout(() => {
+                                localStorage.setItem(key, ts);
+                            }, 500);
+                        }
+                    }
+                } catch {}
+            }
+
+            Promise.all([loadData(), loadReplacements(), maybeShowUpdateBanner()])
                 .then(([data, repl]) => {
                     REPLACES = repl || {};
                     const merged = data.map((t) => ({
