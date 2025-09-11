@@ -454,7 +454,7 @@ class CombinedHandler(SimpleHTTPRequestHandler):
 
     def handle_recent(self, query: str):
         """Return recently edited tools ordered by last_edited desc.
-        GET /api/tools/recent[?limit=50]
+        GET /api/tools/recent[?limit=50][&days=30]
         """
         from urllib.parse import parse_qs
         try:
@@ -464,15 +464,24 @@ class CombinedHandler(SimpleHTTPRequestHandler):
             limit = 50
         limit = max(1, min(limit, 1000))
 
+        # Window in days (default 30)
+        try:
+            days = int((params.get('days', [''])[0] or '30'))
+        except Exception:
+            days = 30
+        days = max(1, min(days, 3650))
+
         if self.db_con is not None:
             try:
+                from datetime import datetime, timedelta
+                cutoff = datetime.now() - timedelta(days=days)
                 sql = (
                     "SELECT name, description, example, type, mas_id, user_edited, "
                     "CAST(last_edited AS VARCHAR) AS last_edited "
-                    "FROM tools WHERE last_edited IS NOT NULL "
+                    "FROM tools WHERE last_edited IS NOT NULL AND last_edited >= ? "
                     "ORDER BY last_edited DESC LIMIT ?"
                 )
-                rows = self.db_con.execute(sql, [limit]).fetchall()
+                rows = self.db_con.execute(sql, [cutoff, limit]).fetchall()
                 cols = [d[0] for d in self.db_con.description]
                 data = [dict(zip(cols, r)) for r in rows]
                 self.send_json_response(data)
@@ -487,7 +496,8 @@ class CombinedHandler(SimpleHTTPRequestHandler):
             return
         try:
             import json
-            from datetime import datetime
+            from datetime import datetime, timedelta
+            cutoff = datetime.now() - timedelta(days=days)
             with open(self.config.json_file, 'r', encoding='utf-8') as f:
                 tools = json.load(f)
             def parse_dt(val):
@@ -495,8 +505,8 @@ class CombinedHandler(SimpleHTTPRequestHandler):
                     return datetime.fromisoformat(val.replace(' ', 'T')) if val else None
                 except Exception:
                     return None
-            tools = [t for t in tools if parse_dt(t.get('last_edited'))]
-            tools.sort(key=lambda t: parse_dt(t.get('last_edited')), reverse=True)
+            tools = [t for t in tools if (parse_dt(t.get('last_edited')) or datetime.min) >= cutoff]
+            tools.sort(key=lambda t: parse_dt(t.get('last_edited')) or datetime.min, reverse=True)
             self.send_json_response(tools[:limit])
         except Exception as e:
             self.send_error(500, f"Recent error: {e}")
